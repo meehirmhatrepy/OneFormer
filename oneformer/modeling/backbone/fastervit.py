@@ -896,7 +896,7 @@ class FasterViT(nn.Module):
             do_propagation: enable carrier token propagation.
         """
         super().__init__()
-        num_features = int(dim * 2 ** (len(depths) - 1))
+        self.num_features = int(dim * 2 ** (len(depths) - 1))
         self.num_classes = num_classes
         self.patch_embed = PatchEmbed(in_chans=in_chans, in_dim=in_dim, dim=dim)
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
@@ -923,9 +923,9 @@ class FasterViT(nn.Module):
                                    only_local=not hat[i],
                                    do_propagation=do_propagation)
             self.levels.append(level)
-        self.norm = LayerNorm2d(num_features) if layer_norm_last else nn.BatchNorm2d(num_features)
+        self.norm = LayerNorm2d(self.num_features) if layer_norm_last else nn.BatchNorm2d(self.num_features)
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.head = nn.Linear(num_features, num_classes) if num_classes > 0 else nn.Identity()
+        self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -1006,7 +1006,7 @@ class FasterViTransformer(FasterViT, Backbone):
         )
 
         self._out_features = cfg.MODEL.FASTERVIT.OUT_FEATURES
-        dims = [in_dim * (2 ** i) for i in range(4)]  # Example dims scaling if not explicitly provided
+        # dims = [in_dim * (2 ** i) for i in range(4)]  # Example dims scaling if not explicitly provided
 
         self._out_feature_strides = {
             "res2": 4,
@@ -1015,10 +1015,10 @@ class FasterViTransformer(FasterViT, Backbone):
             "res5": 32,
         }
         self._out_feature_channels = {
-            "res2": dims[0],
-            "res3": dims[1],
-            "res4": dims[2],
-            "res5": dims[3],
+            "res2": self.num_features[0],
+            "res3": self.num_features[1],
+            "res4": self.num_features[2],
+            "res5": self.num_features[3],
         }
 
     def forward(self, x):
