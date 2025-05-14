@@ -947,12 +947,26 @@ class FasterViT(nn.Module):
     def no_weight_decay_keywords(self):
         return {'rpb'}
 
+    # def forward_features(self, x):
+    #     x = self.patch_embed(x)
+    #     for level in self.levels:
+    #         x = level(x)
+    #     x = self.norm(x)
+    #     return x
     def forward_features(self, x):
         x = self.patch_embed(x)
         for level in self.levels:
             x = level(x)
-        x = self.norm(x)
+        if isinstance(self.norm, nn.LayerNorm):
+            # Permute to (N, H, W, C) for LayerNorm
+            x = x.permute(0, 2, 3, 1)
+            x = self.norm(x)
+            # Permute back to (N, C, H, W)
+            x = x.permute(0, 3, 1, 2)
+        else:
+            x = self.norm(x)
         return x
+
     
     def forward_head(self, x):
         x = self.avgpool(x)
