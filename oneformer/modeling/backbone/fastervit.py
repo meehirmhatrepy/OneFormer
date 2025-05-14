@@ -953,19 +953,26 @@ class FasterViT(nn.Module):
     #         x = level(x)
     #     x = self.norm(x)
     #     return x
+    
     def forward_features(self, x):
+        outputs = {}
         x = self.patch_embed(x)
-        for level in self.levels:
+
+        for i, level in enumerate(self.levels):
             x = level(x)
-        if isinstance(self.norm, nn.LayerNorm):
-            # Permute to (N, H, W, C) for LayerNorm
-            x = x.permute(0, 2, 3, 1)
-            x = self.norm(x)
-            # Permute back to (N, C, H, W)
-            x = x.permute(0, 3, 1, 2)
-        else:
-            x = self.norm(x)
-        return x
+            if i == 0:
+                outputs["res2"] = x
+            elif i == 1:
+                outputs["res3"] = x
+            elif i == 2:
+                outputs["res4"] = x
+            elif i == 3:
+                outputs["res5"] = x
+
+        x = self.norm(x)  # Optional normalization
+        return outputs
+
+
 
     
     def forward_head(self, x):
@@ -976,7 +983,7 @@ class FasterViT(nn.Module):
 
     def forward(self, x):
         x = self.forward_features(x)
-        x = self.forward_head(x)
+        # x = self.forward_head(x)
         return x
     
     def _load_state_dict(self, 
@@ -995,7 +1002,7 @@ class FasterViTransformer(FasterViT, Backbone):
         num_heads = cfg.MODEL.FASTERVIT.get("NUM_HEADS", [2, 4, 8, 16])
         window_size = cfg.MODEL.FASTERVIT.get("WINDOW_SIZE", [7, 7, 7, 7])
         ct_size = cfg.MODEL.FASTERVIT.get("CT_SIZE", 2)
-        dim = cfg.MODEL.FASTERVIT.get("DIM", 128)
+        dim = cfg.MODEL.FASTERVIT.get("DIM", 196)
         in_dim = cfg.MODEL.FASTERVIT.get("IN_DIM", 64)
         mlp_ratio = cfg.MODEL.FASTERVIT.get("MLP_RATIO", 4)
         resolution = cfg.MODEL.FASTERVIT.get("RESOLUTION", 640)
@@ -1004,24 +1011,25 @@ class FasterViTransformer(FasterViT, Backbone):
         hat = cfg.MODEL.FASTERVIT.get("HAT", [False, False, True, False])
         in_chans = cfg.MODEL.FASTERVIT.get("IN_CHANNELS", 3)
 
+        # Detectron2 expects this:
+        self._out_features = cfg.MODEL.FASTERVIT.get("OUT_FEATURES", ["res2", "res3", "res4", "res5"])
+
         super().__init__(
-            dim=dim,
-            in_dim=in_dim,
             depths=depths,
             num_heads=num_heads,
             window_size=window_size,
             ct_size=ct_size,
+            dim=dim,
+            in_dim=in_dim,
             mlp_ratio=mlp_ratio,
             resolution=resolution,
             drop_path_rate=drop_path_rate,
             layer_scale=layer_scale,
-            in_chans=in_chans,
             hat=hat,
+            in_chans=in_chans,
         )
 
-        self._out_features = cfg.MODEL.FASTERVIT.OUT_FEATURES
-        # dims = [in_dim * (2 ** i) for i in range(4)]  # Example dims scaling if not explicitly provided
-
+        # Customize strides/channels for your FViT
         self._out_feature_strides = {
             "res2": 4,
             "res3": 8,
@@ -1029,26 +1037,35 @@ class FasterViTransformer(FasterViT, Backbone):
             "res5": 32,
         }
         self._out_feature_channels = {
-            "res2": self.num_features[0],
-            "res3": self.num_features[1],
-            "res4": self.num_features[2],
-            "res5": self.num_features[3],
+            "res2": self.stage_dims[0],  # e.g., dim*2
+            "res3": self.stage_dims[1],
+            "res4": self.stage_dims[2],
+            "res5": self.stage_dims[3],
         }
 
     def forward(self, x):
-        assert x.dim() == 4, f"FasterViT expects input of shape (N, C, H, W). Got {x.shape}"
-        features = super().forward(x)  # List[Tensor] per stage
-        out = {}
-        for i, name in enumerate(["res2", "res3", "res4", "res5"]):
-            if name in self._out_features:
-                out[name] = features[i]
-        return out
+        """
+        Args:
+            x: Tensor of shape (N,C,H,W)
+
+        Returns:
+            dict[str, Tensor]: features as required by Detectron2
+        """
+        assert x.dim() == 4, f"Expected (N, C, H, W). Got {x.shape}"
+
+        outputs = {}
+        y = super().forward(x)  # y must return a dict like {'res2': ..., 'res3': ..., ...}
+
+        for k in y:
+            if k in self._out_features:
+                outputs[k] = y[k]
+        return outputs
 
     def output_shape(self):
         return {
             name: ShapeSpec(
                 channels=self._out_feature_channels[name],
-                stride=self._out_feature_strides[name]
+                stride=self._out_feature_strides[name],
             )
             for name in self._out_features
         }
