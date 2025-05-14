@@ -897,6 +897,7 @@ class FasterViT(nn.Module):
         """
         super().__init__()
         self.num_features = int(dim * 2 ** (len(depths) - 1))
+        self.stage_dims = [int(dim * 2 ** i) for i in range(len(depths))]
         self.num_classes = num_classes
         self.patch_embed = PatchEmbed(in_chans=in_chans, in_dim=in_dim, dim=dim)
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
