@@ -11,7 +11,7 @@
 import torch
 import torch.nn as nn
 # from timm.models.registry import register_model
-from timm.models.layers import trunc_normal_, DropPath, LayerNorm2d
+from timm.models.layers import trunc_normal_, DropPath, LayerNorm2d, BatchNorm2d
 # from timm.models._builder import resolve_pretrained_cfg, _update_default_model_kwargs
 # from .registry import register_pip_model
 from pathlib import Path
@@ -431,7 +431,7 @@ class Downsample(nn.Module):
             dim_out = dim
         else:
             dim_out = 2 * dim
-        self.norm = LayerNorm2d(dim)
+        self.norm = BatchNorm2d(dim)
         self.reduction = nn.Sequential(
             nn.Conv2d(dim, dim_out, 3, 2, 1, bias=False),
         )
@@ -917,7 +917,7 @@ class FasterViT(nn.Module):
                                    drop=drop_rate,
                                    attn_drop=attn_drop_rate,
                                    drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                                   downsample=False,
+                                   downsample=(i < 3),
                                    layer_scale=layer_scale,
                                    layer_scale_conv=layer_scale_conv,
                                    input_resolution=int(2 ** (-2 - i) * resolution),
