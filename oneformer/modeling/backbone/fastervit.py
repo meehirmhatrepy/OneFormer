@@ -11,7 +11,9 @@
 import torch
 import torch.nn as nn
 # from timm.models.registry import register_model
-from timm.models.layers import trunc_normal_, DropPath, LayerNorm2d, BatchNorm2d
+from timm.models.layers import trunc_normal_, DropPath, LayerNorm2d
+from torch.nn import BatchNorm2d
+
 # from timm.models._builder import resolve_pretrained_cfg, _update_default_model_kwargs
 # from .registry import register_pip_model
 from pathlib import Path
