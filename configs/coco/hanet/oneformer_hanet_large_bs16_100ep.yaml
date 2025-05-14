@@ -1,0 +1,29 @@
+_BASE_: ../oneformer_R50_bs16_50ep.yaml
+MODEL:
+  BACKBONE:
+    NAME: "FasterViTransformer"
+  FASTERVIT:
+    IN_CHANNELS: 3
+    DIM: 196
+    IN_DIM: 64
+    DEPTHS: [3, 3, 12, 5]
+    NUM_HEADS: [2, 4, 8, 16]
+    WINDOW_SIZE: [7, 7, 7, 7]
+    CT_SIZE: 2
+    MLP_RATIO: 4
+    RESOLUTION: 640
+    LAYER_SCALE: 1e-5
+    HAT: [False, False, True, False]
+    DROP_PATH_RATE: 0.3
+  # WEIGHTS: "swin_large_patch4_window12_384_22kto1k.pkl"
+  PIXEL_MEAN: [123.675, 116.280, 103.530]
+  PIXEL_STD: [58.395, 57.120, 57.375]
+  ONE_FORMER:
+    NUM_OBJECT_QUERIES: 150
+SOLVER:
+  STEPS: (655556, 735184)
+  MAX_ITER: 737500
+  AMP:
+    ENABLED: False
+TEST:
+  DETECTIONS_PER_IMAGE: 150
