@@ -22,68 +22,6 @@ import numpy as np
 
 from detectron2.modeling import BACKBONE_REGISTRY, Backbone, ShapeSpec
 
-def _cfg(url='', **kwargs):
-    return {'url': url,
-            'num_classes': 1000,
-            'input_size': (3, 224, 224),
-            'pool_size': None,
-            'crop_pct': 0.875,
-            'interpolation': 'bicubic',
-            'fixed_input_size': True,
-            'mean': (0.485, 0.456, 0.406),
-            'std': (0.229, 0.224, 0.225),
-            **kwargs
-            }
-
-
-default_cfgs = {
-    'faster_vit_0_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_0_224_1k.pth.tar',
-                             crop_pct=0.875,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_1_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_1_224_1k.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_2_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_2_224_1k.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_3_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_3_224_1k.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_4_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_4_224_1k.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_5_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_5_224_1k.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_6_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_6_224_1k.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 224, 224),
-                             crop_mode='center'),
-    'faster_vit_4_21k_224': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_4_21k_224_w14.pth.tar',
-                             crop_pct=0.95,
-                             input_size=(3, 224, 224),
-                             crop_mode='squash'),                          
-    'faster_vit_4_21k_384': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_4_21k_384_w24.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 384, 384),
-                             crop_mode='squash'),
-    'faster_vit_4_21k_512': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_4_21k_512_w32.pth.tar',
-                             crop_pct=1.0,
-                             input_size=(3, 512, 512),
-                             crop_mode='squash'),
-    'faster_vit_4_21k_768': _cfg(url='https://huggingface.co/ahatamiz/FasterViT/resolve/main/fastervit_4_21k_768_w48.pth.tar',
-                             crop_pct=0.93,
-                             input_size=(3, 768, 768),
-                             crop_mode='squash'),                                                         
-}
-
-
 def window_partition(x, window_size):
     B, C, H, W = x.shape
     x = x.view(B, C, H // window_size, window_size, W // window_size, window_size)
@@ -112,106 +50,6 @@ def ct_window(ct, W, H, window_size):
     ct = ct.permute(0, 1, 3, 2, 4, 5)
     return ct
 
-
-def _load_state_dict(module, state_dict, strict=False, logger=None):
-    """Load state_dict to a module.
-
-    This method is modified from :meth:`torch.nn.Module.load_state_dict`.
-    Default value for ``strict`` is set to ``False`` and the message for
-    param mismatch will be shown even if strict is False.
-
-    Args:
-        module (Module): Module that receives the state_dict.
-        state_dict (OrderedDict): Weights.
-        strict (bool): whether to strictly enforce that the keys
-            in :attr:`state_dict` match the keys returned by this module's
-            :meth:`~torch.nn.Module.state_dict` function. Default: ``False``.
-        logger (:obj:`logging.Logger`, optional): Logger to log the error
-            message. If not specified, print function will be used.
-    """
-    unexpected_keys = []
-    all_missing_keys = []
-    err_msg = []
-
-    metadata = getattr(state_dict, '_metadata', None)
-    state_dict = state_dict.copy()
-    if metadata is not None:
-        state_dict._metadata = metadata
-    
-    def load(module, prefix=''):
-        local_metadata = {} if metadata is None else metadata.get(
-            prefix[:-1], {})
-        module._load_from_state_dict(state_dict, prefix, local_metadata, True,
-                                     all_missing_keys, unexpected_keys,
-                                     err_msg)
-        for name, child in module._modules.items():
-            if child is not None:
-                load(child, prefix + name + '.')
-
-    load(module)
-    load = None
-    missing_keys = [
-        key for key in all_missing_keys if 'num_batches_tracked' not in key
-    ]
-
-    if unexpected_keys:
-        err_msg.append('unexpected key in source '
-                       f'state_dict: {", ".join(unexpected_keys)}\n')
-    if missing_keys:
-        err_msg.append(
-            f'missing keys in source state_dict: {", ".join(missing_keys)}\n')
-
-    
-    if len(err_msg) > 0:
-        err_msg.insert(
-            0, 'The model and loaded state dict do not match exactly\n')
-        err_msg = '\n'.join(err_msg)
-        if strict:
-            raise RuntimeError(err_msg)
-        elif logger is not None:
-            logger.warning(err_msg)
-        else:
-            print(err_msg)
-
-
-def _load_checkpoint(model,
-                    filename,
-                    map_location='cpu',
-                    strict=False,
-                    logger=None):
-    """Load checkpoint from a file or URI.
-
-    Args:
-        model (Module): Module to load checkpoint.
-        filename (str): Accept local filepath, URL, ``torchvision://xxx``,
-            ``open-mmlab://xxx``. Please refer to ``docs/model_zoo.md`` for
-            details.
-        map_location (str): Same as :func:`torch.load`.
-        strict (bool): Whether to allow different params for the model and
-            checkpoint.
-        logger (:mod:`logging.Logger` or None): The logger for error message.
-
-    Returns:
-        dict or OrderedDict: The loaded checkpoint.
-    """
-    checkpoint = torch.load(filename, map_location=map_location)
-    if not isinstance(checkpoint, dict):
-        raise RuntimeError(
-            f'No state_dict found in checkpoint file {filename}')
-    if 'state_dict' in checkpoint:
-        state_dict = checkpoint['state_dict']
-    elif 'model' in checkpoint:
-        state_dict = checkpoint['model']
-    else:
-        state_dict = checkpoint
-    if list(state_dict.keys())[0].startswith('module.'):
-        state_dict = {k[7:]: v for k, v in state_dict.items()}
-
-    if sorted(list(state_dict.keys()))[0].startswith('encoder'):
-        state_dict = {k.replace('encoder.', ''): v for k, v in state_dict.items() if k.startswith('encoder.')}
-
-    _load_state_dict(model, state_dict, strict, logger)
-    return checkpoint
 
 
 class PosEmbMLPSwinv2D(nn.Module):
@@ -433,7 +271,7 @@ class Downsample(nn.Module):
             dim_out = dim
         else:
             dim_out = 2 * dim
-        self.norm = BatchNorm2d(dim)
+        self.norm = LayerNorm2d(dim)
         self.reduction = nn.Sequential(
             nn.Conv2d(dim, dim_out, 3, 2, 1, bias=False),
         )
@@ -617,11 +455,15 @@ class HAT(nn.Module):
         # positional encoding for windowed attention tokens
         self.pos_embed = PosEmbMLPSwinv1D(dim, rank=2, seq_length=window_size**2)
         self.norm1 = norm_layer(dim)
+        self.square = True if sr_ratio[0] == sr_ratio[1] else False
         # number of carrier tokens per every window
-        cr_tokens_per_window = ct_size**2 if sr_ratio > 1 else 0
+        self.do_sr_hat = True if ((sr_ratio[0] > 1) or (sr_ratio[1] > 1)) else False
+        cr_tokens_per_window = ct_size**2 if self.do_sr_hat else 0
+
         # total number of carrier tokens
-        cr_tokens_total = cr_tokens_per_window*sr_ratio*sr_ratio
+        cr_tokens_total = cr_tokens_per_window*sr_ratio[0]*sr_ratio[1]
         self.cr_window = ct_size
+
         self.attn = WindowAttention(dim,
                                     num_heads=num_heads,
                                     qkv_bias=qkv_bias,
@@ -642,7 +484,7 @@ class HAT(nn.Module):
         self.gamma4 = nn.Parameter(layer_scale * torch.ones(dim))  if use_layer_scale else 1
 
         self.sr_ratio = sr_ratio
-        if sr_ratio > 1:
+        if self.do_sr_hat:
             # if do hierarchical attention, this part is for carrier tokens
             self.hat_norm1 = norm_layer(dim)
             self.hat_norm2 = norm_layer(dim)
@@ -654,7 +496,8 @@ class HAT(nn.Module):
 
             self.hat_mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
             self.hat_drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
-            self.hat_pos_embed = PosEmbMLPSwinv1D(dim, rank=2, seq_length=cr_tokens_total)
+            if self.square:
+                self.hat_pos_embed = PosEmbMLPSwinv1D(dim, rank=2, seq_length=cr_tokens_total)
             self.gamma1 = nn.Parameter(layer_scale * torch.ones(dim)) if use_layer_scale else 1
             self.gamma2 = nn.Parameter(layer_scale * torch.ones(dim)) if use_layer_scale else 1
             self.upsampler = nn.Upsample(size=window_size, mode='nearest')
@@ -668,23 +511,23 @@ class HAT(nn.Module):
         ct = carrier_tokens
         x = self.pos_embed(x)
 
-        if self.sr_ratio > 1:
+        if self.do_sr_hat:
             # do hierarchical attention via carrier tokens
             # first do attention for carrier tokens
             Bg, Ng, Hg = ct.shape
 
             # ct are located quite differently
-            ct = ct_dewindow(ct, self.cr_window*self.sr_ratio, self.cr_window*self.sr_ratio, self.cr_window)
+            ct = ct_dewindow(ct, self.cr_window*self.sr_ratio[0], self.cr_window*self.sr_ratio[1], self.cr_window)
 
-            # positional bias for carrier tokens
-            ct = self.hat_pos_embed(ct)
+            if self.square:
+                ct = self.hat_pos_embed(ct)
 
             # attention plus mlp
             ct = ct + self.hat_drop_path(self.gamma1*self.hat_attn(self.hat_norm1(ct)))
             ct = ct + self.hat_drop_path(self.gamma2*self.hat_mlp(self.hat_norm2(ct)))
 
             # ct are put back to windows
-            ct = ct_window(ct, self.cr_window * self.sr_ratio, self.cr_window * self.sr_ratio, self.cr_window)
+            ct = ct_window(ct, self.cr_window * self.sr_ratio[0], self.cr_window * self.sr_ratio[1], self.cr_window)
 
             ct = ct.reshape(x.shape[0], -1, N)
             # concatenate carrier_tokens to the windowed tokens
@@ -694,7 +537,7 @@ class HAT(nn.Module):
         x = x + self.drop_path(self.gamma3*self.attn(self.norm1(x)))
         x = x + self.drop_path(self.gamma4*self.mlp(self.norm2(x)))
 
-        if self.sr_ratio > 1:
+        if self.do_sr_hat:
             # for hierarchical attention we need to split carrier tokens and window tokens back
             ctr, x = x.split([x.shape[1] - self.window_size*self.window_size, self.window_size*self.window_size], dim=1)
             ct = ctr.reshape(Bg, Ng, Hg) # reshape carrier tokens.
@@ -724,13 +567,19 @@ class TokenInitializer(nn.Module):
         """
         super().__init__()
 
-        output_size = int(ct_size * input_resolution/window_size)
-        stride_size = int(input_resolution/output_size)
-        kernel_size = input_resolution - (output_size - 1) * stride_size
+        output_size1 = int((ct_size) * input_resolution[0]/window_size)
+        stride_size1 = int(input_resolution[0]/output_size1)
+        kernel_size1 = input_resolution[0] - (output_size1 - 1) * stride_size1
+        output_size2 = int((ct_size) * input_resolution[1]/window_size)
+        stride_size2 = int(input_resolution[1]/output_size2)
+        kernel_size2 = input_resolution[1] - (output_size2 - 1) * stride_size2
+
+
         self.pos_embed = nn.Conv2d(dim, dim, 3, padding=1, groups=dim)
         to_global_feature = nn.Sequential()
         to_global_feature.add_module("pos", self.pos_embed)
-        to_global_feature.add_module("pool", nn.AvgPool2d(kernel_size=kernel_size, stride=stride_size))
+        to_global_feature.add_module("pool", nn.AvgPool2d(kernel_size=(kernel_size1, kernel_size2), 
+                                                          stride=(stride_size1, stride_size2)))
         self.to_global_feature = to_global_feature
         self.window_size = ct_size
 
@@ -744,8 +593,8 @@ class TokenInitializer(nn.Module):
 
 class FasterViTLayer(nn.Module):
     """
-    FasterViT layer based on: "Hatamizadeh et al.,
-    FasterViT: Fast Vision Transformers with Hierarchical Attention"
+    GCViT layer based on: "Hatamizadeh et al.,
+    Global Context Vision Transformers <https://arxiv.org/abs/2206.09959>"
     """
 
     def __init__(self,
@@ -756,7 +605,7 @@ class FasterViTLayer(nn.Module):
                  window_size,
                  ct_size=1,
                  conv=False,
-                 downsample=False,
+                 downsample=True,
                  mlp_ratio=4.,
                  qkv_bias=True,
                  qk_scale=None,
@@ -769,9 +618,35 @@ class FasterViTLayer(nn.Module):
                  hierarchy=True,
                  do_propagation=False
                  ):
+        """
+        Args:
+            dim: feature size dimension.
+            depth: layer depth.
+            input_resolution: input resolution.
+            num_heads: number of attention head.
+            window_size: window size.
+            ct_size: spatial dimension of carrier token local window.
+            conv: conv_based stage flag.
+            downsample: downsample flag.
+            mlp_ratio: MLP ratio.
+            qkv_bias: bool argument for query, key, value learnable bias.
+            qk_scale: bool argument to scaling query, key.
+            drop: dropout rate.
+            attn_drop: attention dropout rate.
+            drop_path: drop path rate.
+            layer_scale: layer scale coefficient.
+            layer_scale_conv: conv layer scale coefficient.
+            only_local: local attention flag.
+            hierarchy: hierarchical attention flag.
+            do_propagation: enable carrier token propagation.
+        """
         super().__init__()
         self.conv = conv
         self.transformer_block = False
+        sr_ratio=1
+        H = input_resolution[0] + (window_size - input_resolution[0] % window_size) % window_size
+        W = input_resolution[1] + (window_size - input_resolution[1] % window_size) % window_size
+        input_resolution = [H,W]
         if conv:
             self.blocks = nn.ModuleList([
                 ConvBlock(dim=dim,
@@ -780,7 +655,7 @@ class FasterViTLayer(nn.Module):
                 for i in range(depth)])
             self.transformer_block = False
         else:
-            sr_ratio = input_resolution // window_size if not only_local else 1
+            sr_ratio = [ input_resolution[0] // window_size if not only_local else 1, input_resolution[1] // window_size if not only_local else 1]
             self.blocks = nn.ModuleList([
                 HAT(dim=dim,
                     num_heads=num_heads,
@@ -800,7 +675,7 @@ class FasterViTLayer(nn.Module):
                 for i in range(depth)])
             self.transformer_block = True
         self.downsample = None if not downsample else Downsample(dim=dim)
-        if len(self.blocks) and not only_local and input_resolution // window_size > 1 and hierarchy and not self.conv:
+        if len(self.blocks) and not only_local and sr_ratio and hierarchy and not self.conv:
             self.global_tokenizer = TokenInitializer(dim,
                                                      input_resolution,
                                                      window_size,
@@ -812,35 +687,42 @@ class FasterViTLayer(nn.Module):
         self.window_size = window_size
 
     def forward(self, x):
-        ct = self.global_tokenizer(x) if self.do_gt else None
         B, C, H, W = x.shape
+        if self.transformer_block:
+            pad_r = (self.window_size - W % self.window_size) % self.window_size
+            pad_b = (self.window_size - H % self.window_size) % self.window_size
+            if pad_r > 0 or pad_b > 0:
+                x = torch.nn.functional.pad(x, (0,pad_r,0,pad_b))
+                _, _, Hp, Wp = x.shape
+            else:
+                Hp, Wp = H, W
+        ct = self.global_tokenizer(x) if self.do_gt else None
         if self.transformer_block:
             x = window_partition(x, self.window_size)
         for bn, blk in enumerate(self.blocks):
             x, ct = blk(x, ct)
         if self.transformer_block:
-            x = window_reverse(x, self.window_size, H, W, B)
+            x = window_reverse(x, self
+                               .window_size, Hp, Wp, B)
+            if pad_r > 0 or pad_b > 0:
+                x = x[:, :, :H, :W].contiguous()
         if self.downsample is None:
             return x
         return self.downsample(x)
-
 class FasterViT(nn.Module):
-    """
-    FasterViT based on: "Hatamizadeh et al.,
-    FasterViT: Fast Vision Transformers with Hierarchical Attention
-    """
-
     def __init__(self,
                  dim,
                  in_dim,
                  depths,
                  window_size,
-                 ct_size,
-                 mlp_ratio,
                  num_heads,
-                 resolution=224,
-                 drop_path_rate=0.2,
                  in_chans=3,
+                 ct_size=2,
+                 mlp_ratio=4,
+                 
+                 resolution=[224, 224],
+                 drop_path_rate=0.2,
+                 
                  num_classes=1000,
                  qkv_bias=True,
                  qk_scale=None,
@@ -852,36 +734,16 @@ class FasterViT(nn.Module):
                  hat=[False, False, True, False],
                  do_propagation=False,
                  **kwargs):
-        """
-        Args:
-            dim: feature size dimension.
-            in_dim: inner-plane feature size dimension.
-            depths: layer depth.
-            window_size: window size.
-            ct_size: spatial dimension of carrier token local window.
-            mlp_ratio: MLP ratio.
-            num_heads: number of attention head.
-            resolution: image resolution.
-            drop_path_rate: drop path rate.
-            in_chans: input channel dimension.
-            num_classes: number of classes.
-            qkv_bias: bool argument for query, key, value learnable bias.
-            qk_scale: bool argument to scaling query, key.
-            drop_rate: dropout rate.
-            attn_drop_rate: attention dropout rate.
-            layer_scale: layer scale coefficient.
-            layer_scale_conv: conv layer scale coefficient.
-            layer_norm_last: last stage layer norm flag.
-            hat: hierarchical attention flag.
-            do_propagation: enable carrier token propagation.
-        """
+
         super().__init__()
-        self.num_features = [int(dim * 2 ** (len(depths) - 1))]
-        # self.stage_dims = [int(dim * 2 ** i) for i in range(len(depths))]
+        if type(resolution)!=tuple and type(resolution)!=list:
+            resolution = [resolution, resolution]
+        num_features = int(dim * 2 ** (len(depths) - 1))
         self.num_classes = num_classes
         self.patch_embed = PatchEmbed(in_chans=in_chans, in_dim=in_dim, dim=dim)
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
         self.levels = nn.ModuleList()
+        self.dim = dim
         if hat is None: hat = [True, ]*len(depths)
         for i in range(len(depths)):
             conv = True if (i == 0 or i == 1) else False
@@ -900,13 +762,14 @@ class FasterViT(nn.Module):
                                    downsample=(i < 3),
                                    layer_scale=layer_scale,
                                    layer_scale_conv=layer_scale_conv,
-                                   input_resolution=int(2 ** (-2 - i) * resolution),
+                                   input_resolution=[int(2 ** (-2 - i) * resolution[0]), 
+                                                     int(2 ** (-2 - i) * resolution[1])],
                                    only_local=not hat[i],
                                    do_propagation=do_propagation)
             self.levels.append(level)
-        self.norm = LayerNorm2d(self.num_features) if layer_norm_last else nn.BatchNorm2d(self.num_features)
+        self.norm = LayerNorm2d(num_features) if layer_norm_last else nn.BatchNorm2d(num_features)
         # self.avgpool = nn.AdaptiveAvgPool2d(1)
-        # self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
+        # self.head = nn.Linear(num_features, num_classes) if num_classes > 0 else nn.Identity()
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -928,26 +791,32 @@ class FasterViT(nn.Module):
     def no_weight_decay_keywords(self):
         return {'rpb'}
 
-    def forward_features(self, x):
-        x = self.patch_embed(x)
-        outs = {}
-        for i, level in enumerate(self.levels):
-            x = level(x)
-            outs["res{}".format(i + 2)] = x
-        x = self.norm(x)
-        return outs
+    # def forward_features(self, x):
+        
+    #     x = self.patch_embed(x)
+    #     for level in self.levels:
+    #         x = level(x)
+    #     x = self.norm(x)
+    #     return x
+    
+    # def forward_head(self, x):
+    #     x = self.avgpool(x)
+    #     x = torch.flatten(x, 1)
+    #     x = self.head(x)
+    #     return x
 
     def forward(self, x):
-        x = self.forward_features(x)
-        return x
-    
-    def _load_state_dict(self, 
-                         pretrained, 
-                         strict: bool = False):
-        _load_checkpoint(self, 
-                         pretrained, 
-                         strict=strict)
-
+        outputs = {}
+        x = self.patch_embed(x)
+        
+        # Extract features from different stages
+        for i, level in enumerate(self.levels):
+            x = level(x)
+            if f"res{i+2}" in self._out_features:
+                outputs[f"res{i+2}"] = x
+        
+        return outputs
+       
 
 
 @BACKBONE_REGISTRY.register()
@@ -957,32 +826,11 @@ class FasterViTransformer(FasterViT, Backbone):
         in_dim = cfg.MODEL.FASTERVIT.IN_DIM
         depths = cfg.MODEL.FASTERVIT.DEPTHS
         window_size = cfg.MODEL.FASTERVIT.WINDOW_SIZE
-        ct_size = cfg.MODEL.FASTERVIT.CT_SIZE
-        mlp_ratio = cfg.MODEL.FASTERVIT.MLP_RATIO
         num_heads = cfg.MODEL.FASTERVIT.NUM_HEADS
-        drop_path_rate = cfg.MODEL.FASTERVIT.DROP_PATH_RATE
-        resolution = cfg.MODEL.FASTERVIT.RESOLUTION  # Usually 224 or from dataset config
-        in_chans = cfg.MODEL.FASTERVIT.IN_CHANNELS
-        hat = cfg.MODEL.FASTERVIT.HAT
-        do_propagation = cfg.MODEL.FASTERVIT.DO_PROPAGATION
 
-        super().__init__(
-            dim=dim,
-            in_dim=in_dim,
-            depths=depths,
-            window_size=window_size,
-            ct_size=ct_size,
-            mlp_ratio=mlp_ratio,
-            num_heads=num_heads,
-            drop_path_rate=drop_path_rate,
-            resolution=resolution,
-            in_chans=in_chans,
-            hat=hat,
-            do_propagation=do_propagation,
-        )
+        super().__init__(dim=dim, in_dim=in_dim, depths=depths, window_size=window_size, num_heads=num_heads)
 
-        # Output feature names and meta info
-        self._out_features = cfg.MODEL.FASTERVIT.OUT_FEATURES
+        self._out_features = ["res2", "res3", "res4", "res5"]
         self._out_feature_strides = {
             "res2": 4,
             "res3": 8,
@@ -990,20 +838,21 @@ class FasterViTransformer(FasterViT, Backbone):
             "res5": 32,
         }
         self._out_feature_channels = {
-            "res2":128,
-            "res3": 256,
-            "res4": 512,
-            "res5": 512,
+            "res2": int(dim * 2 ** 0),
+            "res3": int(dim * 2 ** 1),
+            "res4": int(dim * 2 ** 2),
+            "res5": int(dim * 2 ** 3),
         }
 
     def forward(self, x):
-        assert x.dim() == 4, f"FasterViTransformer input must be (N, C, H, W). Got: {x.shape}"
+        assert x.dim() == 4, f"Input must be (N, C, H, W). Got {x.shape}."
         outputs = {}
         y = super().forward(x)
         for k in y.keys():
             if k in self._out_features:
                 outputs[k] = y[k]
         return outputs
+        
 
     def output_shape(self):
         return {

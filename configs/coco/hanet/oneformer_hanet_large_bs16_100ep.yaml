@@ -8,12 +8,12 @@ MODEL:
     DEPTHS: [2, 3, 6, 5]
     NUM_HEADS: [2, 4, 8, 16]
     WINDOW_SIZE: [7, 7, 7, 7]
-    CT_SIZE: 2
-    MLP_RATIO: 4
-    RESOLUTION: 224
-    LAYER_SCALE: 1e-5
-    HAT: [False, False, True, False]
-    DROP_PATH_RATE: 0.2
+    # CT_SIZE: 2
+    # MLP_RATIO: 4
+    # RESOLUTION: 224
+    # LAYER_SCALE: 1e-5
+    # HAT: [False, False, True, False]
+    # DROP_PATH_RATE: 0.2
   # WEIGHTS: "swin_large_patch4_window12_384_22kto1k.pkl"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]

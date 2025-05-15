@@ -217,17 +217,17 @@ def add_fastervit_config(cfg):
     
     # swin transformer backbone
     cfg.MODEL.FASTERVIT = CN()
-    cfg.MODEL.FASTERVIT.IN_CHANNELS = 3
+    # cfg.MODEL.FASTERVIT.IN_CHANNELS = 3
     cfg.MODEL.FASTERVIT.DEPTHS = [3, 3, 12, 5]
     cfg.MODEL.FASTERVIT.NUM_HEADS = [2, 4, 8, 16]
-    cfg.MODEL.FASTERVIT.WINDOW_SIZE = [7, 7, 7, 7]
-    cfg.MODEL.FASTERVIT.CT_SIZE = 2
+    cfg.MODEL.FASTERVIT.WINDOW_SIZE = [7, 7, 14, 14]
+    # cfg.MODEL.FASTERVIT.CT_SIZE = 2
     cfg.MODEL.FASTERVIT.DIM = 64
     cfg.MODEL.FASTERVIT.IN_DIM = 64
-    cfg.MODEL.FASTERVIT.MLP_RATIO = 4
-    cfg.MODEL.FASTERVIT.RESOLUTION = 224
-    cfg.MODEL.FASTERVIT.DROP_PATH_RATE = 0.2
-    cfg.MODEL.FASTERVIT.LAYER_SCALE = 1e-5
-    cfg.MODEL.FASTERVIT.HAT = [False, False, True, False]
-    cfg.MODEL.FASTERVIT.DO_PROPAGATION = False
-    cfg.MODEL.FASTERVIT.OUT_FEATURES = ["res2", "res3", "res4", "res5"]
+    # cfg.MODEL.FASTERVIT.MLP_RATIO = 4
+    # cfg.MODEL.FASTERVIT.RESOLUTION = 224
+    # cfg.MODEL.FASTERVIT.DROP_PATH_RATE = 0.2
+    # cfg.MODEL.FASTERVIT.LAYER_SCALE = 1e-5
+    # cfg.MODEL.FASTERVIT.HAT = [False, False, True, False]
+    # cfg.MODEL.FASTERVIT.DO_PROPAGATION = False
+    # cfg.MODEL.FASTERVIT.OUT_FEATURES = ["res2", "res3", "res4", "res5"]
