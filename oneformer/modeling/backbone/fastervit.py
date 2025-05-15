@@ -990,10 +990,10 @@ class FasterViTransformer(FasterViT, Backbone):
             "res5": 32,
         }
         self._out_feature_channels = {
-            "res2": self.num_features[0],
-            "res3": self.num_features[1],
-            "res4": self.num_features[2],
-            "res5": self.num_features[3],
+            "res2":128,
+            "res3": 256,
+            "res4": 512,
+            "res5": 512,
         }
 
     def forward(self, x):
