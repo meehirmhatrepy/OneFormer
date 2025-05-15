@@ -247,6 +247,8 @@ class Mlp(nn.Module):
         x = self.drop(x)
         x = x.view(x_size)
         return x
+
+
 class Downsample(nn.Module):
     """
     Down-sampling block based on: "Hatamizadeh et al.,
@@ -260,58 +262,25 @@ class Downsample(nn.Module):
         """
         Args:
             dim: feature size dimension.
+            norm_layer: normalization layer.
             keep_dim: bool argument for maintaining the resolution.
         """
+
         super().__init__()
         if keep_dim:
             dim_out = dim
         else:
             dim_out = 2 * dim
-
-        # Replace LayerNorm2d with BatchNorm2d or custom LayerNorm
-        self.norm = nn.BatchNorm2d(dim)
+        self.norm = LayerNorm2d(dim)
         self.reduction = nn.Sequential(
-            nn.Conv2d(dim, dim_out, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.Conv2d(dim, dim_out, 3, 2, 1, bias=False),
         )
 
     def forward(self, x):
-        x = self.norm(x)  # [B, C, H, W]
-        x = self.reduction(x)  # Downsample
+        print(x.shape)
+        x = self.norm(x)
+        x = self.reduction(x)
         return x
-
-
-# class Downsample(nn.Module):
-#     """
-#     Down-sampling block based on: "Hatamizadeh et al.,
-#     FasterViT: Fast Vision Transformers with Hierarchical Attention
-#     """
-
-#     def __init__(self,
-#                  dim,
-#                  keep_dim=False,
-#                  ):
-#         """
-#         Args:
-#             dim: feature size dimension.
-#             norm_layer: normalization layer.
-#             keep_dim: bool argument for maintaining the resolution.
-#         """
-
-#         super().__init__()
-#         if keep_dim:
-#             dim_out = dim
-#         else:
-#             dim_out = 2 * dim
-#         self.norm = LayerNorm2d(dim)
-#         self.reduction = nn.Sequential(
-#             nn.Conv2d(dim, dim_out, 3, 2, 1, bias=False),
-#         )
-
-#     def forward(self, x):
-#         print(x.shape)
-#         x = self.norm(x)
-#         x = self.reduction(x)
-#         return x
 
 
 class PatchEmbed(nn.Module):
