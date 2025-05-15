@@ -857,9 +857,9 @@ class FasterViTransformer(FasterViT, Backbone):
             "res5": 32,
         }
         self._out_feature_channels = {
-            "res2": int(dim * 2 ** 0),
-            "res3": int(dim * 2 ** 1),
-            "res4": int(dim * 2 ** 2),
+            "res2": int(dim * 2 ** 1),
+            "res3": int(dim * 2 ** 2),
+            "res4": int(dim * 2 ** 3),
             "res5": int(dim * 2 ** 3),
         }
 
