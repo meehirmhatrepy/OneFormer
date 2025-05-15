@@ -769,28 +769,6 @@ class FasterViTLayer(nn.Module):
                  hierarchy=True,
                  do_propagation=False
                  ):
-        """
-        Args:
-            dim: feature size dimension.
-            depth: layer depth.
-            input_resolution: input resolution.
-            num_heads: number of attention head.
-            window_size: window size.
-            ct_size: spatial dimension of carrier token local window.
-            conv: conv_based stage flag.
-            downsample: downsample flag.
-            mlp_ratio: MLP ratio.
-            qkv_bias: bool argument for query, key, value learnable bias.
-            qk_scale: bool argument to scaling query, key.
-            drop: dropout rate.
-            attn_drop: attention dropout rate.
-            drop_path: drop path rate.
-            layer_scale: layer scale coefficient.
-            layer_scale_conv: conv layer scale coefficient.
-            only_local: local attention flag.
-            hierarchy: hierarchical attention flag.
-            do_propagation: enable carrier token propagation.
-        """
         super().__init__()
         self.conv = conv
         self.transformer_block = False
@@ -899,7 +877,7 @@ class FasterViT(nn.Module):
         """
         super().__init__()
         self.num_features = int(dim * 2 ** (len(depths) - 1))
-        self.stage_dims = [int(dim * 2 ** i) for i in range(len(depths))]
+        # self.stage_dims = [int(dim * 2 ** i) for i in range(len(depths))]
         self.num_classes = num_classes
         self.patch_embed = PatchEmbed(in_chans=in_chans, in_dim=in_dim, dim=dim)
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
@@ -927,8 +905,8 @@ class FasterViT(nn.Module):
                                    do_propagation=do_propagation)
             self.levels.append(level)
         self.norm = LayerNorm2d(self.num_features) if layer_norm_last else nn.BatchNorm2d(self.num_features)
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
+        # self.avgpool = nn.AdaptiveAvgPool2d(1)
+        # self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -950,43 +928,17 @@ class FasterViT(nn.Module):
     def no_weight_decay_keywords(self):
         return {'rpb'}
 
-    # def forward_features(self, x):
-    #     x = self.patch_embed(x)
-    #     for level in self.levels:
-    #         x = level(x)
-    #     x = self.norm(x)
-    #     return x
-    
     def forward_features(self, x):
-        outputs = {}
         x = self.patch_embed(x)
-
+        outs = {}
         for i, level in enumerate(self.levels):
             x = level(x)
-            if i == 0:
-                outputs["res2"] = x
-            elif i == 1:
-                outputs["res3"] = x
-            elif i == 2:
-                outputs["res4"] = x
-            elif i == 3:
-                outputs["res5"] = x
-
-        x = self.norm(x)  # Optional normalization
-        return outputs
-
-
-
-    
-    def forward_head(self, x):
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        x = self.head(x)
-        return x
+            outs["res{}".format(i + 2)] = x
+        x = self.norm(x)
+        return outs
 
     def forward(self, x):
         x = self.forward_features(x)
-        # x = self.forward_head(x)
         return x
     
     def _load_state_dict(self, 
@@ -1001,38 +953,36 @@ class FasterViT(nn.Module):
 @BACKBONE_REGISTRY.register()
 class FasterViTransformer(FasterViT, Backbone):
     def __init__(self, cfg, input_shape):
-        depths = cfg.MODEL.FASTERVIT.get("DEPTHS", [3, 3, 12, 5])
-        num_heads = cfg.MODEL.FASTERVIT.get("NUM_HEADS", [2, 4, 8, 16])
-        window_size = cfg.MODEL.FASTERVIT.get("WINDOW_SIZE", [7, 7, 7, 7])
-        ct_size = cfg.MODEL.FASTERVIT.get("CT_SIZE", 2)
-        dim = cfg.MODEL.FASTERVIT.get("DIM", 196)
-        in_dim = cfg.MODEL.FASTERVIT.get("IN_DIM", 64)
-        mlp_ratio = cfg.MODEL.FASTERVIT.get("MLP_RATIO", 4)
-        resolution = cfg.MODEL.FASTERVIT.get("RESOLUTION", 640)
-        drop_path_rate = cfg.MODEL.FASTERVIT.get("DROP_PATH_RATE", 0.3)
-        layer_scale = cfg.MODEL.FASTERVIT.get("LAYER_SCALE", 1e-5)
-        hat = cfg.MODEL.FASTERVIT.get("HAT", [False, False, True, False])
-        in_chans = cfg.MODEL.FASTERVIT.get("IN_CHANNELS", 3)
-
-        # Detectron2 expects this:
-        self._out_features = cfg.MODEL.FASTERVIT.get("OUT_FEATURES", ["res2", "res3", "res4", "res5"])
+        dim = cfg.MODEL.FASTER_VIT.DIM
+        in_dim = cfg.MODEL.FASTER_VIT.IN_DIM
+        depths = cfg.MODEL.FASTER_VIT.DEPTHS
+        window_size = cfg.MODEL.FASTER_VIT.WINDOW_SIZE
+        ct_size = cfg.MODEL.FASTER_VIT.CT_SIZE
+        mlp_ratio = cfg.MODEL.FASTER_VIT.MLP_RATIO
+        num_heads = cfg.MODEL.FASTER_VIT.NUM_HEADS
+        drop_path_rate = cfg.MODEL.FASTER_VIT.DROP_PATH_RATE
+        resolution = cfg.MODEL.FASTERVIT.RESOLUTION  # Usually 224 or from dataset config
+        in_chans = cfg.MODEL.FASTERVIT.IN_CHANNELS
+        hat = cfg.MODEL.FASTER_VIT.HAT
+        do_propagation = cfg.MODEL.FASTER_VIT.DO_PROPAGATION
 
         super().__init__(
-            depths=depths,
-            num_heads=num_heads,
-            window_size=window_size,
-            ct_size=ct_size,
             dim=dim,
             in_dim=in_dim,
+            depths=depths,
+            window_size=window_size,
+            ct_size=ct_size,
             mlp_ratio=mlp_ratio,
-            resolution=resolution,
+            num_heads=num_heads,
             drop_path_rate=drop_path_rate,
-            layer_scale=layer_scale,
-            hat=hat,
+            resolution=resolution,
             in_chans=in_chans,
+            hat=hat,
+            do_propagation=do_propagation,
         )
 
-        # Customize strides/channels for your FViT
+        # Output feature names and meta info
+        self._out_features = cfg.MODEL.FASTERVIT.OUT_FEATURES
         self._out_feature_strides = {
             "res2": 4,
             "res3": 8,
@@ -1040,26 +990,17 @@ class FasterViTransformer(FasterViT, Backbone):
             "res5": 32,
         }
         self._out_feature_channels = {
-            "res2": self.stage_dims[0],  # e.g., dim*2
-            "res3": self.stage_dims[1],
-            "res4": self.stage_dims[2],
-            "res5": self.stage_dims[3],
+            "res2": self.num_features[0],
+            "res3": self.num_features[1],
+            "res4": self.num_features[2],
+            "res5": self.num_features[3],
         }
 
     def forward(self, x):
-        """
-        Args:
-            x: Tensor of shape (N,C,H,W)
-
-        Returns:
-            dict[str, Tensor]: features as required by Detectron2
-        """
-        assert x.dim() == 4, f"Expected (N, C, H, W). Got {x.shape}"
-
+        assert x.dim() == 4, f"FasterViTransformer input must be (N, C, H, W). Got: {x.shape}"
         outputs = {}
-        y = super().forward(x)  # y must return a dict like {'res2': ..., 'res3': ..., ...}
-
-        for k in y:
+        y = super().forward(x)
+        for k in y.keys():
             if k in self._out_features:
                 outputs[k] = y[k]
         return outputs
@@ -1067,8 +1008,8 @@ class FasterViTransformer(FasterViT, Backbone):
     def output_shape(self):
         return {
             name: ShapeSpec(
-                channels=self._out_feature_channels[name],
-                stride=self._out_feature_strides[name],
+                channels=self._out_feature_channels[name], 
+                stride=self._out_feature_strides[name]
             )
             for name in self._out_features
         }
