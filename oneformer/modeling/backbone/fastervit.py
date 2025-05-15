@@ -953,18 +953,18 @@ class FasterViT(nn.Module):
 @BACKBONE_REGISTRY.register()
 class FasterViTransformer(FasterViT, Backbone):
     def __init__(self, cfg, input_shape):
-        dim = cfg.MODEL.FASTER_VIT.DIM
-        in_dim = cfg.MODEL.FASTER_VIT.IN_DIM
-        depths = cfg.MODEL.FASTER_VIT.DEPTHS
-        window_size = cfg.MODEL.FASTER_VIT.WINDOW_SIZE
-        ct_size = cfg.MODEL.FASTER_VIT.CT_SIZE
-        mlp_ratio = cfg.MODEL.FASTER_VIT.MLP_RATIO
-        num_heads = cfg.MODEL.FASTER_VIT.NUM_HEADS
-        drop_path_rate = cfg.MODEL.FASTER_VIT.DROP_PATH_RATE
+        dim = cfg.MODEL.FASTERVIT.DIM
+        in_dim = cfg.MODEL.FASTERVIT.IN_DIM
+        depths = cfg.MODEL.FASTERVIT.DEPTHS
+        window_size = cfg.MODEL.FASTERVIT.WINDOW_SIZE
+        ct_size = cfg.MODEL.FASTERVIT.CT_SIZE
+        mlp_ratio = cfg.MODEL.FASTERVIT.MLP_RATIO
+        num_heads = cfg.MODEL.FASTERVIT.NUM_HEADS
+        drop_path_rate = cfg.MODEL.FASTERVIT.DROP_PATH_RATE
         resolution = cfg.MODEL.FASTERVIT.RESOLUTION  # Usually 224 or from dataset config
         in_chans = cfg.MODEL.FASTERVIT.IN_CHANNELS
-        hat = cfg.MODEL.FASTER_VIT.HAT
-        do_propagation = cfg.MODEL.FASTER_VIT.DO_PROPAGATION
+        hat = cfg.MODEL.FASTERVIT.HAT
+        do_propagation = cfg.MODEL.FASTERVIT.DO_PROPAGATION
 
         super().__init__(
             dim=dim,

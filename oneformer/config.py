@@ -229,5 +229,5 @@ def add_fastervit_config(cfg):
     cfg.MODEL.FASTERVIT.DROP_PATH_RATE = 0.2
     cfg.MODEL.FASTERVIT.LAYER_SCALE = 1e-5
     cfg.MODEL.FASTERVIT.HAT = [False, False, True, False]
-    cfg.MODEL.FASTER_VIT.DO_PROPAGATION = False
+    cfg.MODEL.FASTERVIT.DO_PROPAGATION = False
     cfg.MODEL.FASTERVIT.OUT_FEATURES = ["res2", "res3", "res4", "res5"]
