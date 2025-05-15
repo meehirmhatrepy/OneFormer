@@ -277,6 +277,7 @@ class Downsample(nn.Module):
         )
 
     def forward(self, x):
+        print(x.shape)
         x = self.norm(x)
         x = self.reduction(x)
         return x
@@ -709,6 +710,8 @@ class FasterViTLayer(nn.Module):
         if self.downsample is None:
             return x
         return self.downsample(x)
+    
+    
 class FasterViT(nn.Module):
     def __init__(self,
                  dim,
@@ -768,8 +771,7 @@ class FasterViT(nn.Module):
                                    do_propagation=do_propagation)
             self.levels.append(level)
         self.norm = LayerNorm2d(num_features) if layer_norm_last else nn.BatchNorm2d(num_features)
-        # self.avgpool = nn.AdaptiveAvgPool2d(1)
-        # self.head = nn.Linear(num_features, num_classes) if num_classes > 0 else nn.Identity()
+       
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -790,20 +792,6 @@ class FasterViT(nn.Module):
     @torch.jit.ignore
     def no_weight_decay_keywords(self):
         return {'rpb'}
-
-    # def forward_features(self, x):
-        
-    #     x = self.patch_embed(x)
-    #     for level in self.levels:
-    #         x = level(x)
-    #     x = self.norm(x)
-    #     return x
-    
-    # def forward_head(self, x):
-    #     x = self.avgpool(x)
-    #     x = torch.flatten(x, 1)
-    #     x = self.head(x)
-    #     return x
 
     def forward(self, x):
         outputs = {}
