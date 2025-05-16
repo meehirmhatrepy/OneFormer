@@ -424,7 +424,7 @@ def main(args):
 
         # Save model weights as .safetensors
         model_state_dict = model.state_dict()
-        save_model(model, os.path.join(export_dir, "model.safetensors"))
+        save_model(model, os.path.join(export_dir, "model.safetensors"), metadata={"format": "pt"})
 
         # Convert cfg to config.json
         cfg_dict = cfg.dump()
