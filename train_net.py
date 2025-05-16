@@ -15,7 +15,7 @@ import os
 
 from collections import OrderedDict
 from typing import Any, Dict, List, Set
-
+from safetensors.torch import save_file
 import torch
 import warnings
 
@@ -411,7 +411,7 @@ def main(args):
     if args.eval_only:
         model = Trainer.build_model(cfg)
         net_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print("Total Params: {} M".format(net_params/1e6))
+        print("Total Params: {} M".format(net_params / 1e6))
         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
             cfg.MODEL.WEIGHTS, resume=args.resume
         )
@@ -424,11 +424,26 @@ def main(args):
 
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
+
     if args.machine_rank == 0:
         net_params = sum(p.numel() for p in trainer.model.parameters() if p.requires_grad)
-        print("Total Params: {} M".format(net_params/1e6))
+        print("Total Params: {} M".format(net_params / 1e6))
+
+    # 🏋️ Train the model
+    trainer.train()
+
+    # ✅ Save model as `.safetensors`
+    output_model_path = os.path.join(cfg.OUTPUT_DIR, "model.safetensors")
+    save_file(trainer.model.state_dict(), output_model_path)
+    print(f"✅ Model saved to: {output_model_path}")
+
+    # ✅ Save config as YAML
+    config_save_path = os.path.join(cfg.OUTPUT_DIR, "config.yaml")
+    with open(config_save_path, "w") as f:
+        f.write(cfg.dump())
+    print(f"✅ Config saved to: {config_save_path}")
+
     sleep(3)
-    return trainer.train()
 
 
 if __name__ == "__main__":
