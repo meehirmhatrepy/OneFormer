@@ -423,20 +423,8 @@ def main(args):
         os.makedirs(export_dir, exist_ok=True)
 
         # Save model weights as .safetensors
-        model_state_dict = model.state_dict()
-        save_model(model, os.path.join(export_dir, "model.safetensors"), metadata={"format": "pt"})
-
-        # Convert cfg to config.json
-        cfg_dict = cfg.dump()
-        try:
-            cfg_dict = json.loads(cfg_dict)  # convert from yaml-text to dict
-        except Exception:
-            import yaml
-            cfg_dict = yaml.safe_load(cfg_dict)
-        with open(os.path.join(export_dir, "config.json"), "w") as f:
-            json.dump(cfg_dict, f, indent=4)
-
-        print(f"\n✅ Saved to: {export_dir}")
+        torch.save(model, os.path.join(export_dir, "oneformer_full_model.pth"))
+       
 
         res = Trainer.test(cfg, model)
         if cfg.TEST.AUG.ENABLED:
