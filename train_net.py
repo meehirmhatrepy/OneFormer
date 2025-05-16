@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Set
 import torch
 import warnings
 import json
-from safetensors.torch import save_file
+from safetensors.torch import save_model
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
@@ -424,7 +424,7 @@ def main(args):
 
         # Save model weights as .safetensors
         model_state_dict = model.state_dict()
-        save_file(model_state_dict, os.path.join(export_dir, "model.safetensors"))
+        save_model(model, os.path.join(export_dir, "model.safetensors"))
 
         # Convert cfg to config.json
         cfg_dict = cfg.dump()
