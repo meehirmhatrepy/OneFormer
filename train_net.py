@@ -18,7 +18,8 @@ from typing import Any, Dict, List, Set
 
 import torch
 import warnings
-
+import json
+from safetensors.torch import save_file
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
@@ -412,12 +413,31 @@ def main(args):
         model = Trainer.build_model(cfg)
         net_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print("Total Params: {} M".format(net_params/1e6))
+
         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
             cfg.MODEL.WEIGHTS, resume=args.resume
         )
 
-        torch.save(model.state_dict(), "model_fastervit.pth")
-        print('saved model')
+        # 🔽 Save model.safetensors and config.json
+        export_dir = "hf_model"
+        os.makedirs(export_dir, exist_ok=True)
+
+        # Save model weights as .safetensors
+        model_state_dict = model.state_dict()
+        save_file(model_state_dict, os.path.join(export_dir, "model.safetensors"))
+
+        # Convert cfg to config.json
+        cfg_dict = cfg.dump()
+        try:
+            cfg_dict = json.loads(cfg_dict)  # convert from yaml-text to dict
+        except Exception:
+            import yaml
+            cfg_dict = yaml.safe_load(cfg_dict)
+        with open(os.path.join(export_dir, "config.json"), "w") as f:
+            json.dump(cfg_dict, f, indent=4)
+
+        print(f"\n✅ Saved to: {export_dir}")
+
         res = Trainer.test(cfg, model)
         if cfg.TEST.AUG.ENABLED:
             res.update(Trainer.test_with_TTA(cfg, model))
