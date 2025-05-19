@@ -755,14 +755,14 @@ class FasterViT(nn.Module):
                  mlp_ratio=4,
                  
                  resolution=[224, 224],
-                 drop_path_rate=0.2,
+                 drop_path_rate=0.3,
                  
                  num_classes=1000,
                  qkv_bias=True,
                  qk_scale=None,
                  drop_rate=0.,
                  attn_drop_rate=0.,
-                 layer_scale=None,
+                 layer_scale=1e-5,
                  layer_scale_conv=None,
                  layer_norm_last=False,
                  hat=[False, False, True, False],
