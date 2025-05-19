@@ -77,8 +77,9 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
         sorted_cats = sorted(cats, key=lambda x: x["id"])
 
         # Filter only "thing" classes (isthing == 1)
-        thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
-        thing_colors = [c["color"] for c in sorted_cats if c["isthing"] == 1]
+        # thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
+        thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
+        thing_colors = [c["color"] for c in sorted(cats, key=lambda x: x["id"])]
 
         # Set metadata
         # meta.thing_classes = thing_classes
@@ -309,6 +310,7 @@ def load_coco_panoptic_json(json_file, instances_json, instances_name, image_dir
         # different extension, and images have extension ".jpg" for COCO. Need
         # to make image extension a user-provided argument if we extend this
         # function to support other COCO-like datasets.
+        print(ann["file_name"])
         image_file = os.path.join(image_dir, os.path.splitext(ann["file_name"])[0] + ".jpg")
         label_file = os.path.join(gt_dir, ann["file_name"])
         sem_label_file = os.path.join(semseg_dir, ann["file_name"])
