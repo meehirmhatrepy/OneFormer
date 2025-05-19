@@ -12,7 +12,21 @@ from fvcore.common.download import download
 from panopticapi.utils import rgb2id
 from PIL import Image
 
-from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
+# from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
+
+COCO_CATEGORIES = [
+    {"id": 0, "name": "background", "supercategory": "none", "isthing": 0, "color": [0, 0, 0]},
+    {"id": 1, "name": "Backrind", "supercategory": "defect", "isthing": 1, "color": [220, 20, 60]},
+    {"id": 2, "name": "crack", "supercategory": "defect", "isthing": 1, "color": [119, 11, 32]},
+    {"id": 3, "name": "dent", "supercategory": "defect", "isthing": 1, "color": [0, 0, 142]},
+    {"id": 4, "name": "elastomer", "supercategory": "object", "isthing": 1, "color": [0, 0, 230]},
+    {"id": 5, "name": "extrusion", "supercategory": "defect", "isthing": 1, "color": [106, 0, 228]},
+    {"id": 6, "name": "flow", "supercategory": "defect", "isthing": 1, "color": [0, 60, 100]},
+    {"id": 7, "name": "over grinding", "supercategory": "defect", "isthing": 1, "color": [0, 80, 100]},
+    {"id": 8, "name": "overtrimming", "supercategory": "defect", "isthing": 1, "color": [0, 0, 70]},
+    {"id": 9, "name": "rgd", "supercategory": "defect", "isthing": 1, "color": [0, 0, 192]},
+    {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]}
+]
 
 
 def _process_panoptic_to_semantic(input_panoptic, output_semantic, segments, id_map):
