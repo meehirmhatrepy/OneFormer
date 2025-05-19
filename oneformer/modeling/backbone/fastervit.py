@@ -13,6 +13,7 @@ import torch.nn as nn
 # from timm.models.registry import register_model
 from timm.models.layers import trunc_normal_, DropPath, LayerNorm2d
 from torch.nn import BatchNorm2d
+import torch.utils.checkpoint as checkpoint
 
 # from timm.models._builder import resolve_pretrained_cfg, _update_default_model_kwargs
 # from .registry import register_pip_model
@@ -648,7 +649,8 @@ class FasterViTLayer(nn.Module):
                  layer_scale_conv=None,
                  only_local=False,
                  hierarchy=True,
-                 do_propagation=False
+                 do_propagation=False,
+                 use_checkpoint=False,
                  ):
         """
         Args:
@@ -674,6 +676,7 @@ class FasterViTLayer(nn.Module):
         """
         super().__init__()
         self.conv = conv
+        self.use_checkpoint = use_checkpoint
         self.transformer_block = False
         sr_ratio=1
         H = input_resolution[0] + (window_size - input_resolution[0] % window_size) % window_size
@@ -732,7 +735,10 @@ class FasterViTLayer(nn.Module):
         if self.transformer_block:
             x = window_partition(x, self.window_size)
         for bn, blk in enumerate(self.blocks):
-            x, ct = blk(x, ct)
+            if self.use_checkpoint:
+                x, ct = checkpoint.checkpoint(blk,x, ct)
+            else:
+                x, ct = blk(x, ct)
         if self.transformer_block:
             x = window_reverse(x, self
                                .window_size, Hp, Wp, B)
@@ -767,6 +773,7 @@ class FasterViT(nn.Module):
                  layer_norm_last=False,
                  hat=[False, False, True, False],
                  do_propagation=False,
+                 use_checkpoint=False,
                  **kwargs):
 
         super().__init__()
@@ -800,7 +807,8 @@ class FasterViT(nn.Module):
                                    input_resolution=[int(2 ** (-2 - i) * resolution[0]), 
                                                      int(2 ** (-2 - i) * resolution[1])],
                                    only_local=not hat[i],
-                                   do_propagation=do_propagation)
+                                   do_propagation=do_propagation,
+                                   use_checkpoint=use_checkpoint,)
             self.levels.append(level)
         self.norm = LayerNorm2d(num_features) if layer_norm_last else nn.BatchNorm2d(num_features)
        
@@ -870,8 +878,8 @@ class FasterViTransformer(FasterViT, Backbone):
         depths = cfg.MODEL.FASTERVIT.DEPTHS
         window_size = cfg.MODEL.FASTERVIT.WINDOW_SIZE
         num_heads = cfg.MODEL.FASTERVIT.NUM_HEADS
-
-        super().__init__(dim=dim, in_dim=in_dim, depths=depths, window_size=window_size, num_heads=num_heads)
+        use_checkpoint = cfg.MODEL.SWIN.USE_CHECKPOINT
+        super().__init__(dim=dim, in_dim=in_dim, depths=depths, window_size=window_size, num_heads=num_heads, use_checkpoint=use_checkpoint)
 
         self._out_features = ["res2", "res3", "res4", "res5"]
         self._out_feature_strides = {
