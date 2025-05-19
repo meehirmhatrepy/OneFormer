@@ -8,7 +8,7 @@ import os
 
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.data.datasets import load_sem_seg
-from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
+# from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
 from detectron2.utils.file_io import PathManager
 import contextlib
 import logging
@@ -39,6 +39,22 @@ _PREDEFINED_SPLITS_COCO_PANOPTIC = {
         "coco/panoptic_semseg_val2017",
     ),
 }
+
+
+COCO_CATEGORIES = [
+    {"id": 0, "name": "background", "supercategory": "none", "isthing": 0, "color": [0, 0, 0]},
+    {"id": 1, "name": "Backrind", "supercategory": "defect", "isthing": 1, "color": [220, 20, 60]},
+    {"id": 2, "name": "crack", "supercategory": "defect", "isthing": 1, "color": [119, 11, 32]},
+    {"id": 3, "name": "dent", "supercategory": "defect", "isthing": 1, "color": [0, 0, 142]},
+    {"id": 4, "name": "elastomer", "supercategory": "object", "isthing": 1, "color": [0, 0, 230]},
+    {"id": 5, "name": "extrusion", "supercategory": "defect", "isthing": 1, "color": [106, 0, 228]},
+    {"id": 6, "name": "flow", "supercategory": "defect", "isthing": 1, "color": [0, 60, 100]},
+    {"id": 7, "name": "over grinding", "supercategory": "defect", "isthing": 1, "color": [0, 80, 100]},
+    {"id": 8, "name": "overtrimming", "supercategory": "defect", "isthing": 1, "color": [0, 0, 70]},
+    {"id": 9, "name": "rgd", "supercategory": "defect", "isthing": 1, "color": [0, 0, 192]},
+    {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]}
+]
+
 
 def load_coco_instance_json(json_file, image_root, dataset_name=None):
     from pycocotools.coco import COCO

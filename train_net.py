@@ -418,12 +418,12 @@ def main(args):
             cfg.MODEL.WEIGHTS, resume=args.resume
         )
 
-        # 🔽 Save model.safetensors and config.json
-        export_dir = "hf_model"
-        os.makedirs(export_dir, exist_ok=True)
+        # # 🔽 Save model.safetensors and config.json
+        # export_dir = "hf_model"
+        # os.makedirs(export_dir, exist_ok=True)
 
-        # Save model weights as .safetensors
-        torch.save(model, os.path.join(export_dir, "oneformer_full_model.pth"))
+        # # Save model weights as .safetensors
+        # torch.save(model, os.path.join(export_dir, "oneformer_full_model.pth"))
        
 
         res = Trainer.test(cfg, model)
