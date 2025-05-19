@@ -8,7 +8,7 @@ import os
 
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.data.datasets import load_sem_seg
-from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
+# from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
 from detectron2.utils.file_io import PathManager
 import contextlib
 import logging
@@ -40,6 +40,22 @@ _PREDEFINED_SPLITS_COCO_PANOPTIC = {
     ),
 }
 
+
+COCO_CATEGORIES = [
+    {"id": 0, "name": "background", "supercategory": "none", "isthing": 0, "color": [0, 0, 0]},
+    {"id": 1, "name": "Backrind", "supercategory": "defect", "isthing": 1, "color": [220, 20, 60]},
+    {"id": 2, "name": "crack", "supercategory": "defect", "isthing": 1, "color": [119, 11, 32]},
+    {"id": 3, "name": "dent", "supercategory": "defect", "isthing": 1, "color": [0, 0, 142]},
+    {"id": 4, "name": "elastomer", "supercategory": "object", "isthing": 1, "color": [0, 0, 230]},
+    {"id": 5, "name": "extrusion", "supercategory": "defect", "isthing": 1, "color": [106, 0, 228]},
+    {"id": 6, "name": "flow", "supercategory": "defect", "isthing": 1, "color": [0, 60, 100]},
+    {"id": 7, "name": "over grinding", "supercategory": "defect", "isthing": 1, "color": [0, 80, 100]},
+    {"id": 8, "name": "overtrimming", "supercategory": "defect", "isthing": 1, "color": [0, 0, 70]},
+    {"id": 9, "name": "rgd", "supercategory": "defect", "isthing": 1, "color": [0, 0, 192]},
+    {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]}
+]
+
+
 def load_coco_instance_json(json_file, image_root, dataset_name=None):
     from pycocotools.coco import COCO
 
@@ -53,12 +69,19 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
     id_map = None
     if dataset_name is not None:
         meta = MetadataCatalog.get(dataset_name)
-        cat_ids = sorted(coco_api.getCatIds())
-        cats = coco_api.loadCats(cat_ids)
-        # The categories in a custom json file may not be sorted.
-        thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
-        meta.thing_classes = thing_classes
+        # Use full list of categories
+        cats = COCO_CATEGORIES
+        cat_ids = [c["id"] for c in cats]
 
+        # Sort by ID
+        sorted_cats = sorted(cats, key=lambda x: x["id"])
+
+        # Filter only "thing" classes (isthing == 1)
+        thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
+        thing_colors = [c["color"] for c in sorted_cats if c["isthing"] == 1]
+
+        # Set metadata
+        # meta.thing_classes = thing_classes
         # In COCO, certain category ids are artificially removed,
         # and by convention they are always ignored.
         # We deal with COCO's id issue and translate
@@ -258,7 +281,7 @@ def load_coco_panoptic_json(json_file, instances_json, instances_name, image_dir
         json_file (str): path to the json file. e.g., "~/coco/annotations/panoptic_train2017.json".
     Returns:
         list[dict]: a list of dicts in Detectron2 standard format. (See
-        `Using Custom Datasets </tutorials/datasets.html>`_ )
+        Using Custom Datasets </tutorials/datasets.html>_ )
     """
 
     def _convert_category_id(segment_info, meta):
@@ -347,9 +370,7 @@ def register_all_coco_panoptic_annos_sem_seg(root):
         prefix_instances = prefix[: -len("_panoptic")]
         instances_meta = MetadataCatalog.get(prefix_instances)
         image_root, instances_json = instances_meta.image_root, instances_meta.json_file
-        print('image_root: ',image_root)
-        print('instances_json: ', instances_json)
-       
+
         if 'val' in instances_json:
             instances_json = instances_json.replace('instances_', 'panoptic2instances_')
 
