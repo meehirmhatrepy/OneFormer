@@ -134,7 +134,7 @@ if __name__ == "__main__":
         description="The script converts panoptic COCO format to detection \
          COCO format. See this file's head for more information."
     )
-    parser.add_argument('--things_only', action='store_true',
+    parser.add_argument('--things_only', action='store_False',
                         help="discard stuff classes")
     args = parser.parse_args()
     

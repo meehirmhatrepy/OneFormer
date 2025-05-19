@@ -25,7 +25,8 @@ COCO_CATEGORIES = [
     {"id": 7, "name": "over grinding", "supercategory": "defect", "isthing": 1, "color": [0, 80, 100]},
     {"id": 8, "name": "overtrimming", "supercategory": "defect", "isthing": 1, "color": [0, 0, 70]},
     {"id": 9, "name": "rgd", "supercategory": "defect", "isthing": 1, "color": [0, 0, 192]},
-    {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]}
+    {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]},
+    {"id": 10, "name": "trimmingdummy", "supercategory": "defect", "isthing": 1, "color": [250, 40, 30]}
 ]
 
 
