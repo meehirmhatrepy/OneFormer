@@ -15,7 +15,7 @@ from PIL import Image
 # from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
 
 COCO_CATEGORIES = [
-    {"id": 0, "name": "background", "supercategory": "none", "isthing": 0, "color": [0, 0, 0]},
+    # {"id": 0, "name": "background", "supercategory": "none", "isthing": 0, "color": [0, 0, 0]},
     {"id": 1, "name": "Backrind", "supercategory": "defect", "isthing": 1, "color": [220, 20, 60]},
     {"id": 2, "name": "crack", "supercategory": "defect", "isthing": 1, "color": [119, 11, 32]},
     {"id": 3, "name": "dent", "supercategory": "defect", "isthing": 1, "color": [0, 0, 142]},
