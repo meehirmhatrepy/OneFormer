@@ -42,7 +42,7 @@ _PREDEFINED_SPLITS_COCO_PANOPTIC = {
 
 
 COCO_CATEGORIES = [
-    {"id": 0, "name": "background", "supercategory": "none", "isthing": 0, "color": [0, 0, 0]},
+    {"id": 0, "name": "background", "supercategory": "none", "isthing": 1, "color": [0, 0, 0]},
     {"id": 1, "name": "Backrind", "supercategory": "defect", "isthing": 1, "color": [220, 20, 60]},
     {"id": 2, "name": "crack", "supercategory": "defect", "isthing": 1, "color": [119, 11, 32]},
     {"id": 3, "name": "dent", "supercategory": "defect", "isthing": 1, "color": [0, 0, 142]},
@@ -53,7 +53,6 @@ COCO_CATEGORIES = [
     {"id": 8, "name": "overtrimming", "supercategory": "defect", "isthing": 1, "color": [0, 0, 70]},
     {"id": 9, "name": "rgd", "supercategory": "defect", "isthing": 1, "color": [0, 0, 192]},
     {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]},
-     {"id": 10, "name": "trimmingdummy", "supercategory": "defect", "isthing": 1, "color": [250, 40, 30]}
 ]
 
 
@@ -78,8 +77,8 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
         sorted_cats = sorted(cats, key=lambda x: x["id"])
 
         # Filter only "thing" classes (isthing == 1)
-        thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
-        thing_colors = [c["color"] for c in sorted_cats if c["isthing"] == 1]
+        thing_classes = [c["name"] for c in sorted_cats ]
+        thing_colors = [c["color"] for c in sorted_cats ]
 
         # Set metadata
         # meta.thing_classes = thing_classes
