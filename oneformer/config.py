@@ -88,7 +88,7 @@ def add_common_config(cfg):
     cfg.MODEL.SEM_SEG_HEAD.INST_EMBED_DIM = 256
 
     # LSJ aug
-    cfg.INPUT.IMAGE_SIZE = 640
+    cfg.INPUT.IMAGE_SIZE = 1024
     cfg.INPUT.MIN_SCALE = 0.1
     cfg.INPUT.MAX_SCALE = 2.0
 
