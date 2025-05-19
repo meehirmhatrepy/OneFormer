@@ -367,7 +367,12 @@ def register_all_coco_panoptic_annos_sem_seg(root):
         (panoptic_root, panoptic_json, semantic_root),
     ) in _PREDEFINED_SPLITS_COCO_PANOPTIC.items():
 
+        # Custom prefix to avoid conflict with COCO
+        custom_prefix = prefix.replace("coco_2017", "my_elastomer_dataset")
+
         prefix_instances = prefix[: -len("_panoptic")]
+        prefix_instances_custom = custom_prefix[: -len("_panoptic")]
+
         instances_meta = MetadataCatalog.get(prefix_instances)
         image_root, instances_json = instances_meta.image_root, instances_meta.json_file
 
@@ -375,14 +380,14 @@ def register_all_coco_panoptic_annos_sem_seg(root):
             instances_json = instances_json.replace('instances_', 'panoptic2instances_')
 
         register_coco_panoptic_annos_sem_seg(
-            prefix,
-            get_metadata(),
+            custom_prefix,
+            get_metadata(),  # your custom metadata with custom classes
             image_root,
             os.path.join(root, panoptic_root),
             os.path.join(root, panoptic_json),
             os.path.join(root, semantic_root),
             instances_json,
-            prefix_instances,
+            prefix_instances_custom,
         )
 
 
