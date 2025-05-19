@@ -69,14 +69,19 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
     id_map = None
     if dataset_name is not None:
         meta = MetadataCatalog.get(dataset_name)
-        # cat_ids = sorted(coco_api.getCatIds())
-        # cats = coco_api.loadCats(cat_ids)
-        cat_ids = [c["id"] for c in COCO_CATEGORIES]
+        # Use full list of categories
         cats = COCO_CATEGORIES
-        # The categories in a custom json file may not be sorted.
-        thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
-        meta.thing_classes = thing_classes
+        cat_ids = [c["id"] for c in cats]
 
+        # Sort by ID
+        sorted_cats = sorted(cats, key=lambda x: x["id"])
+
+        # Filter only "thing" classes (isthing == 1)
+        thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
+        thing_colors = [c["color"] for c in sorted_cats if c["isthing"] == 1]
+
+        # Set metadata
+        meta.thing_classes = thing_classes
         # In COCO, certain category ids are artificially removed,
         # and by convention they are always ignored.
         # We deal with COCO's id issue and translate
