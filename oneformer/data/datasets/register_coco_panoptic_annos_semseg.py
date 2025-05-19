@@ -348,7 +348,7 @@ def register_all_coco_panoptic_annos_sem_seg(root):
         instances_meta = MetadataCatalog.get(prefix_instances)
         image_root, instances_json = instances_meta.image_root, instances_meta.json_file
         print('image_root: ',image_root)
-        print('panoptic_root: ', os.path.join(root, panoptic_root))
+        print('instances_json: ', instances_json)
        
         if 'val' in instances_json:
             instances_json = instances_json.replace('instances_', 'panoptic2instances_')
