@@ -69,8 +69,10 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
     id_map = None
     if dataset_name is not None:
         meta = MetadataCatalog.get(dataset_name)
-        cat_ids = sorted(coco_api.getCatIds())
-        cats = coco_api.loadCats(cat_ids)
+        # cat_ids = sorted(coco_api.getCatIds())
+        # cats = coco_api.loadCats(cat_ids)
+        cat_ids = [c["id"] for c in COCO_CATEGORIES]
+        cats = COCO_CATEGORIES
         # The categories in a custom json file may not be sorted.
         thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
         meta.thing_classes = thing_classes
