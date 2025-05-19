@@ -53,7 +53,7 @@ COCO_CATEGORIES = [
     {"id": 8, "name": "overtrimming", "supercategory": "defect", "isthing": 1, "color": [0, 0, 70]},
     {"id": 9, "name": "rgd", "supercategory": "defect", "isthing": 1, "color": [0, 0, 192]},
     {"id": 10, "name": "trimming", "supercategory": "defect", "isthing": 1, "color": [250, 170, 30]},
-    {"id": 10, "name": "trimmingdummy", "supercategory": "defect", "isthing": 1, "color": [250, 40, 30]}
+     {"id": 10, "name": "trimmingdummy", "supercategory": "defect", "isthing": 1, "color": [250, 40, 30]}
 ]
 
 
@@ -78,9 +78,8 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
         sorted_cats = sorted(cats, key=lambda x: x["id"])
 
         # Filter only "thing" classes (isthing == 1)
-        # thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
-        thing_classes = [c["name"] for c in sorted(cats, key=lambda x: x["id"])]
-        thing_colors = [c["color"] for c in sorted(cats, key=lambda x: x["id"])]
+        thing_classes = [c["name"] for c in sorted_cats if c["isthing"] == 1]
+        thing_colors = [c["color"] for c in sorted_cats if c["isthing"] == 1]
 
         # Set metadata
         # meta.thing_classes = thing_classes
@@ -92,6 +91,7 @@ def load_coco_instance_json(json_file, image_root, dataset_name=None):
         # It works by looking at the "categories" field in the json, therefore
         # if users' own json also have incontiguous ids, we'll
         # apply this mapping as well but print a warning.
+        print('min cat ids:', min(cat_ids))
         if not (min(cat_ids) == 1 and max(cat_ids) == len(cat_ids)):
             if "coco" not in dataset_name:
                 logger.warning(
