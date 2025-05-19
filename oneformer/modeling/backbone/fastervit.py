@@ -756,7 +756,7 @@ class FasterViT(nn.Module):
                  
                  resolution=[224, 224],
                  drop_path_rate=0.3,
-                 
+                 frozen_stages = -1
                  num_classes=1000,
                  qkv_bias=True,
                  qk_scale=None,
@@ -770,6 +770,7 @@ class FasterViT(nn.Module):
                  **kwargs):
 
         super().__init__()
+        self.frozen_stages = frozen_stages
         if type(resolution)!=tuple and type(resolution)!=list:
             resolution = [resolution, resolution]
         num_features = int(dim * 2 ** (len(depths) - 1))
@@ -804,6 +805,29 @@ class FasterViT(nn.Module):
         self.norm = LayerNorm2d(num_features) if layer_norm_last else nn.BatchNorm2d(num_features)
        
         self.apply(self._init_weights)
+    def _freeze_stages(self):
+        # Freeze patch_embed if frozen_stages >= 0
+        if self.frozen_stages >= 0:
+            self.patch_embed.eval()
+            for param in self.patch_embed.parameters():
+                param.requires_grad = False
+
+        # Freeze levels up to frozen_stages - 1
+        for i in range(0, self.frozen_stages):
+            m = self.levels[i]
+            m.eval()
+            for param in m.parameters():
+                param.requires_grad = False
+
+        # Freeze norm if all levels are frozen
+        if self.frozen_stages >= len(self.levels):
+            self.norm.eval()
+            for param in self.norm.parameters():
+                param.requires_grad = False
+
+    def train(self, mode=True):
+        super(FasterViT, self).train(mode)
+        self._freeze_stages()
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
