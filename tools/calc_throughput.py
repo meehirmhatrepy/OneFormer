@@ -152,7 +152,10 @@ class Trainer(TPDefaultTrainer):
                 def step(self, closure=None):
                     all_params = itertools.chain(*[x["params"] for x in self.param_groups])
                     for p in all_params:
-                        torch.nan_to_num(p.grad, nan=0.0, posinf=1e5, neginf=-1e5, out=p.grad)
+                        if p.grad is not None:
+                            torch.nan_to_num(p.grad, nan=0.0, posinf=1e5, neginf=-1e5, out=p.grad)
+                    # for p in all_params:
+                    #     torch.nan_to_num(p.grad, nan=0.0, posinf=1e5, neginf=-1e5, out=p.grad)
                     torch.nn.utils.clip_grad_norm_(all_params, clip_norm_val)
                     super().step(closure=closure)
 
