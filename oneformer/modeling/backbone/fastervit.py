@@ -756,7 +756,7 @@ class FasterViT(nn.Module):
                  
                  resolution=[224, 224],
                  drop_path_rate=0.3,
-                 frozen_stages = -1
+                 frozen_stages = -1,
                  num_classes=1000,
                  qkv_bias=True,
                  qk_scale=None,
