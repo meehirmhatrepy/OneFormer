@@ -1,0 +1,2 @@
+“.pkl” filter=lfs diff=lfs merge=lfs -text
+configs/coco/fastervit_loaded_weights.pkl filter=lfs diff=lfs merge=lfs -text
