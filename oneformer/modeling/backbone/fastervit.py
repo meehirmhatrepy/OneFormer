@@ -838,7 +838,7 @@ class FasterViT(nn.Module):
         self._freeze_stages()
 
     # def init_weights(self, pretrained=None):
-    def _init_weights(m):
+    def _init_weights(self,m):
         if isinstance(m, nn.Linear):
             trunc_normal_(m.weight, std=.02)
             if isinstance(m, nn.Linear) and m.bias is not None:
