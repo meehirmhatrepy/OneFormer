@@ -837,20 +837,21 @@ class FasterViT(nn.Module):
         super(FasterViT, self).train(mode)
         self._freeze_stages()
 
-    def _init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            trunc_normal_(m.weight, std=.02)
-            if isinstance(m, nn.Linear) and m.bias is not None:
+    def init_weights(self, pretrained=None):
+        def _init_weights(m):
+            if isinstance(m, nn.Linear):
+                trunc_normal_(m.weight, std=.02)
+                if isinstance(m, nn.Linear) and m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.LayerNorm):
                 nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.LayerNorm):
-            nn.init.constant_(m.bias, 0)
-            nn.init.constant_(m.weight, 1.0)
-        elif isinstance(m, LayerNorm2d):
-            nn.init.constant_(m.bias, 0)
-            nn.init.constant_(m.weight, 1.0)
-        elif isinstance(m, nn.BatchNorm2d):
-            nn.init.ones_(m.weight)
-            nn.init.zeros_(m.bias)
+                nn.init.constant_(m.weight, 1.0)
+            elif isinstance(m, LayerNorm2d):
+                nn.init.constant_(m.bias, 0)
+                nn.init.constant_(m.weight, 1.0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
 
     @torch.jit.ignore
     def no_weight_decay_keywords(self):
@@ -878,10 +879,10 @@ class FasterViTransformer(FasterViT, Backbone):
         depths = cfg.MODEL.FASTERVIT.DEPTHS
         window_size = cfg.MODEL.FASTERVIT.WINDOW_SIZE
         num_heads = cfg.MODEL.FASTERVIT.NUM_HEADS
-        use_checkpoint = cfg.MODEL.SWIN.USE_CHECKPOINT
+        use_checkpoint = cfg.MODEL.FASTERVIT.USE_CHECKPOINT
         super().__init__(dim=dim, in_dim=in_dim, depths=depths, window_size=window_size, num_heads=num_heads, use_checkpoint=use_checkpoint)
 
-        self._out_features = ["res2", "res3", "res4", "res5"]
+        self._out_features = cfg.MODEL.FASTERVIT.OUT_FEATURES
         self._out_feature_strides = {
             "res2": 4,
             "res3": 8,

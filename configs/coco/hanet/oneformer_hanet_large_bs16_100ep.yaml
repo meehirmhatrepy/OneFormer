@@ -3,19 +3,19 @@ MODEL:
   BACKBONE:
     NAME: "FasterViTransformer"
   FASTERVIT:
-    DIM: 160
+    DIM: 196
     IN_DIM: 64
     DEPTHS: [3, 3, 12, 5]
     NUM_HEADS: [4, 8, 16, 32]
     WINDOW_SIZE: [7, 7, 14, 7]
-
+  WEIGHTS: "../fastervit_loaded_weights.pkl"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
   ONE_FORMER:
     NUM_OBJECT_QUERIES: 150
 SOLVER:
   STEPS: (2480, 2970)
-  MAX_ITER: 3310
+  MAX_ITER: 33100
   AMP:
     ENABLED: False
 TEST:
