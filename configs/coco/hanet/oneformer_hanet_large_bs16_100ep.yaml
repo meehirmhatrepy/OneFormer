@@ -3,7 +3,7 @@ MODEL:
   BACKBONE:
     NAME: "FasterViTransformer"
   FASTERVIT:
-    DIM: 172
+    DIM: 196
     IN_DIM: 64
     DEPTHS: [3, 3, 12, 5]
     NUM_HEADS: [4, 8, 16, 32]
