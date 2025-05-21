@@ -45,7 +45,7 @@ def convert_panoptic_to_detection_coco_format_single_core(
                                                                  working_idx,
                                                                  len(annotations_set)))
 
-        file_name = '{}.png'.format(annotation['file_name'].rsplit('.')[0])
+        file_name = '{}.png'.format(annotation['file_name'].rsplit('.',1)[0])
         try:
             pan_format = np.array(
                 Image.open(os.path.join(segmentations_folder, file_name)), dtype=np.uint32
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         description="The script converts panoptic COCO format to detection \
          COCO format. See this file's head for more information."
     )
-    parser.add_argument('--things_only', action='store_False',
+    parser.add_argument('--things_only', action='store_true',
                         help="discard stuff classes")
     args = parser.parse_args()
     
