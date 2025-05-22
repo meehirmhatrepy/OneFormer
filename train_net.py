@@ -416,10 +416,15 @@ def main(args):
         model = Trainer.build_model(cfg)
         net_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print("Total Params: {} M".format(net_params/1e6))
+        torch.save(model, 'model_full.pth')
+        print('model saved')
 
         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
             cfg.MODEL.WEIGHTS, resume=args.resume
         )
+
+        # torch.save(model, 'model_full.pth')
+
 
         res = Trainer.test(cfg, model)
         if cfg.TEST.AUG.ENABLED:
