@@ -11,7 +11,7 @@ MODEL:
     IN_DIM: 64
     DROP_PATH_RATE: 0.42
     OUT_INDICES: [0, 1, 2, 3]
-  # WEIGHTS: "convnext_xlarge_22k_1k_384_ema.pkl"
+  WEIGHTS: "faster_vit.pkl"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
   ONE_FORMER:
