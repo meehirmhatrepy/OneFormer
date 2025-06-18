@@ -8,7 +8,7 @@ MODEL:
     DEPTHS: [3, 3, 12, 5]
     NUM_HEADS: [4, 8, 16, 32]
     WINDOW_SIZE: [7, 7, 14, 7]
-  # WEIGHTS: "../fastervit_loaded_weights.pkl"
+  WEIGHTS: "../model_fastervit_weights.pkl"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
   ONE_FORMER:
